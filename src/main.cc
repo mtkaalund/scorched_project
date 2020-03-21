@@ -1,4 +1,4 @@
-#include <vector>
+#include <list>
 #include <memory>
 #include <string>
 
@@ -6,10 +6,11 @@
 
 #include "cPhysicObject.h"
 #include "cParticle.h"
+#include "Generic.h"
 
 class Scorched_project : public olc::PixelGameEngine
 {
-	std::vector<std::unique_ptr<cPhysicsObject>> list_of_objects;
+	std::list<std::unique_ptr<cPhysicsObject>> list_of_objects;
 
 public:
 	// Constructor
@@ -20,36 +21,45 @@ public:
 
 	bool OnUserCreate()
 	{
-		for( int i = 0; i < 2; i++ )
+		for (int i = 0; i < 2; i++)
 		{
 			list_of_objects.push_back(
 				std::unique_ptr<cParticle>(
 					new cParticle(
-					{
-					(float)(rand() % ScreenWidth()),
-					(float)(rand() % 100)
-					}
-				)
-				)
-			);
+						{randf(0.0f, (float)ScreenWidth()),
+						 randf(0.0f, 100.0f)})));
 		}
 
 		return true;
 	}
 
-	bool OnUserUpdate( float fElapsedTime )
+	bool OnUserUpdate(float fElapsedTime)
 	{
 		// Game main loop
-
 		Clear(olc::BLUE);
 
-
-		for( auto &p : list_of_objects )
+		// Before handling inputs, we'll need to check if window has focus
+		if (IsFocused())
 		{
-			p->Update( fElapsedTime );
-			p->Display(this);
+			if (GetKey(olc::Key::ENTER).bReleased)
+			{
+				std::cout << "Enter has been released" << std::endl;
+			}
 		}
 
+		// Run through the list of object and update it
+		for (auto &p : list_of_objects)
+		{
+			p->Update(fElapsedTime);
+		}
+
+		// Remove dead objects from list
+		list_of_objects.remove_if([](std::unique_ptr<cPhysicsObject> &p){ return p->bIsDead;});
+		// Runthrough the list and displays the objects
+		for (auto &p : list_of_objects)
+		{
+			p->Display(this);
+		}
 
 		DrawString({0, 0}, "Game Objects: " + std::to_string(list_of_objects.size()));
 		return true;
@@ -58,12 +68,11 @@ public:
 	bool OnUserDestroy()
 	{
 		// Only use if need to destroy some thing
+		list_of_objects.clear();
 
 		return true;
 	}
-
 };
-
 
 int main(int argc, char *argv[])
 {
