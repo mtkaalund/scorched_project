@@ -43,7 +43,6 @@ public:
 
 		Clear(olc::BLUE);
 
-		DrawString({ScreenWidth()/2, ScreenHeight()/2}, "Hello, TF!!!", olc::GREEN);
 
 		for( auto &p : list_of_objects )
 		{
