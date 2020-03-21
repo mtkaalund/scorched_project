@@ -1,5 +1,6 @@
 #include <vector>
 #include <memory>
+#include <string>
 
 #include <OneLoneCoder/olcPixelGameEngine.h>
 
@@ -50,6 +51,8 @@ public:
 			p->Display(this);
 		}
 
+
+		DrawString({0, 0}, "Game Objects: " + std::to_string(list_of_objects.size()));
 		return true;
 	}
 
