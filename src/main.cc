@@ -1,5 +1,7 @@
 #include <OneLoneCoder/olcPixelGameEngine.h>
 
+#include "cPhysicObject.h"
+
 class Scorched_project : public olc::PixelGameEngine
 {
 public:
