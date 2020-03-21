@@ -18,6 +18,7 @@ public:
 
     void Display( olc::PixelGameEngine * engine ) override
     {       
+        engine->DrawLine(location, location + olc::vf2d({0, 10}), olc::GREEN);
         engine->DrawCircle(location, 10, olc::RED);
     }
 };
