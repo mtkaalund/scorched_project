@@ -10,7 +10,12 @@ public:
     olc::vf2d velocity;
     olc::vf2d acceleration;
 
-    cPhysicsObject( olc::vf2d loc ) : location( loc ) {}
+    bool bIsDead;
+
+    cPhysicsObject( olc::vf2d loc ) : location( loc ) 
+    {
+        bIsDead = false; // The object is not dead
+    }
 
     virtual void Update( float fElapsedTime ) = 0;
     virtual void Display( olc::PixelGameEngine * engine ) = 0;
