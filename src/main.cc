@@ -1,9 +1,14 @@
+#include <vector>
+#include <memory>
+
 #include <OneLoneCoder/olcPixelGameEngine.h>
 
 #include "cPhysicObject.h"
 
 class Scorched_project : public olc::PixelGameEngine
 {
+	std::vector<std::unique_ptr<cPhysicsObject>> list_of_objects;
+
 public:
 	// Constructor
 	Scorched_project()
