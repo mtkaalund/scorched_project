@@ -4,6 +4,7 @@
 #include <OneLoneCoder/olcPixelGameEngine.h>
 
 #include "cPhysicObject.h"
+#include "cParticle.h"
 
 class Scorched_project : public olc::PixelGameEngine
 {
@@ -18,6 +19,20 @@ public:
 
 	bool OnUserCreate()
 	{
+		for( int i = 0; i < 2; i++ )
+		{
+			list_of_objects.push_back(
+				std::unique_ptr<cParticle>(
+					new cParticle(
+					{
+					(float)(rand() % ScreenWidth()),
+					(float)(rand() % 100)
+					}
+				)
+				)
+			);
+		}
+
 		return true;
 	}
 
@@ -29,6 +44,11 @@ public:
 
 		DrawString({ScreenWidth()/2, ScreenHeight()/2}, "Hello, TF!!!", olc::GREEN);
 
+		for( auto &p : list_of_objects )
+		{
+			p->Update( fElapsedTime );
+			p->Display(this);
+		}
 
 		return true;
 	}
