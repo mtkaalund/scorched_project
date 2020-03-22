@@ -8,6 +8,14 @@
 template <typename T>
 T const pi = std::acos(-T(1));
 
+// Linear interpolation
+// https://en.wikipedia.org/wiki/Linear_interpolation
+template <typename T>
+T lerp( T v0, T v1, T t )
+{
+    return ( 1 - t ) * v0 + t * v1;
+}
+
 // C++17 float random generator
 float randf(float a, float b)
 {
