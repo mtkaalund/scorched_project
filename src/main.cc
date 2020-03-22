@@ -14,7 +14,7 @@ class Scorched_project : public olc::PixelGameEngine
 
 	int nMapWidth = 1024;
 	int nMapHeight = ScreenHeight();
-	
+
 	olc::vf2d fCamera = {0.0f, 0.0f};
 	float fCameraSpeed = 200.0f;
 
@@ -41,14 +41,14 @@ public:
 
 	bool OnUserUpdate(float fElapsedTime)
 	{
+		// Putting mouse position in a vector
+		olc::vf2d mouse_pos = {(float)GetMouseX(), (float)GetMouseY()};
 		// Game main loop
 		Clear(olc::BLUE);
 
 		// Before handling inputs, we'll need to check if window has focus
 		if (IsFocused())
 		{
-			// Putting mouse position in a vector
-			olc::vf2d mouse_pos = {(float)GetMouseX(), (float)GetMouseY()};
 
 			if (GetKey(olc::Key::ENTER).bReleased)
 			{
@@ -56,16 +56,23 @@ public:
 			}
 
 			// Handle camera position
-			if( mouse_pos.x < 5 ) fCamera.x -= fCameraSpeed * fElapsedTime;
-			if( mouse_pos.x > ScreenWidth() - 5 ) fCamera.x += fCameraSpeed * fElapsedTime;
-			if( mouse_pos.y < 5 ) fCamera.y -= fCameraSpeed * fElapsedTime;
-			if( mouse_pos.y > ScreenHeight() - 5 ) fCamera.y += fCameraSpeed * fElapsedTime;
+			if (mouse_pos.x < 5)
+				fCamera.x -= fCameraSpeed * fElapsedTime;
+			if (mouse_pos.x > ScreenWidth() - 5)
+				fCamera.x += fCameraSpeed * fElapsedTime;
+			if (mouse_pos.y < 5)
+				fCamera.y -= fCameraSpeed * fElapsedTime;
+			if (mouse_pos.y > ScreenHeight() - 5)
+				fCamera.y += fCameraSpeed * fElapsedTime;
 			// Clamp camera boundaries
-			if( fCamera.x < 0 )	fCamera.x = 0;
-			if( fCamera.y < 0 ) fCamera.y = 0;
-			if( fCamera.x >= nMapWidth - ScreenWidth() ) fCamera.x = nMapWidth - ScreenWidth();
-			if( fCamera.y >= nMapHeight - ScreenHeight() ) fCamera.y = nMapHeight - ScreenHeight();
-
+			if (fCamera.x < 0)
+				fCamera.x = 0;
+			if (fCamera.y < 0)
+				fCamera.y = 0;
+			if (fCamera.x >= nMapWidth - ScreenWidth())
+				fCamera.x = nMapWidth - ScreenWidth();
+			if (fCamera.y >= nMapHeight - ScreenHeight())
+				fCamera.y = nMapHeight - ScreenHeight();
 		}
 
 		// Run through the list of object and update it
@@ -75,15 +82,18 @@ public:
 		}
 
 		// Remove dead objects from list
-		list_of_objects.remove_if([](std::unique_ptr<cPhysicsObject> &p){ return p->bIsDead;});
+		list_of_objects.remove_if([](std::unique_ptr<cPhysicsObject> &p) { return p->bIsDead; });
 		// Runthrough the list and displays the objects
 		for (auto &p : list_of_objects)
 		{
 			p->Display(this);
 		}
 
+
+		// Debug information
 		DrawString({0, 0}, "Game Objects: " + std::to_string(list_of_objects.size()));
 		DrawString({0, 8}, "Camera: " + std::to_string(fCamera.x) + "," + std::to_string(fCamera.y));
+		DrawString({0, 16}, "Mouse: " + std::to_string(mouse_pos.x) + "," + std::to_string(mouse_pos.y));
 		return true;
 	}
 
