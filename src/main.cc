@@ -12,6 +12,12 @@ class Scorched_project : public olc::PixelGameEngine
 {
 	std::list<std::unique_ptr<cPhysicsObject>> list_of_objects;
 
+	int nMapWidth = 1024;
+	int nMapHeight = ScreenHeight();
+	
+	olc::vf2d fCamera = {0.0f, 0.0f};
+	float fCameraSpeed = 200.0f;
+
 public:
 	// Constructor
 	Scorched_project()
@@ -41,10 +47,25 @@ public:
 		// Before handling inputs, we'll need to check if window has focus
 		if (IsFocused())
 		{
+			// Putting mouse position in a vector
+			olc::vf2d mouse_pos = {(float)GetMouseX(), (float)GetMouseY()};
+
 			if (GetKey(olc::Key::ENTER).bReleased)
 			{
 				std::cout << "Enter has been released" << std::endl;
 			}
+
+			// Handle camera position
+			if( mouse_pos.x < 5 ) fCamera.x -= fCameraSpeed * fElapsedTime;
+			if( mouse_pos.x > ScreenWidth() - 5 ) fCamera.x += fCameraSpeed * fElapsedTime;
+			if( mouse_pos.y < 5 ) fCamera.y -= fCameraSpeed * fElapsedTime;
+			if( mouse_pos.y > ScreenHeight() - 5 ) fCamera.y += fCameraSpeed * fElapsedTime;
+			// Clamp camera boundaries
+			if( fCamera.x < 0 )	fCamera.x = 0;
+			if( fCamera.y < 0 ) fCamera.y = 0;
+			if( fCamera.x >= nMapWidth - ScreenWidth() ) fCamera.x = nMapWidth - ScreenWidth();
+			if( fCamera.y >= nMapHeight - ScreenHeight() ) fCamera.y = nMapHeight - ScreenHeight();
+
 		}
 
 		// Run through the list of object and update it
@@ -62,6 +83,7 @@ public:
 		}
 
 		DrawString({0, 0}, "Game Objects: " + std::to_string(list_of_objects.size()));
+		DrawString({0, 8}, "Camera: " + std::to_string(fCamera.x) + "," + std::to_string(fCamera.y));
 		return true;
 	}
 
