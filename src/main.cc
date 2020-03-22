@@ -89,6 +89,16 @@ public:
 			p->Display(this);
 		}
 
+		float seed = randf(1.0f, 10.0f);
+		float old_y = 0;
+		float old_x = 0;
+		for(int x = 0; x < ScreenWidth(); x+= ScreenWidth()/10 )
+		{
+			float y = sinf( seed * x ) + sinf( pi<float> * x );
+			DrawLine({old_x, ScreenHeight()-old_y*ScreenHeight()},{x, ScreenHeight()-y*ScreenHeight()}, olc::GREEN);
+			old_x = x;
+			old_y = y;
+		}
 
 		// Debug information
 		DrawString({0, 0}, "Game Objects: " + std::to_string(list_of_objects.size()));
