@@ -1,6 +1,7 @@
 #include <list>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <OneLoneCoder/olcPixelGameEngine.h>
 
@@ -10,12 +11,15 @@
 
 class Scorched_project : public olc::PixelGameEngine
 {
+private:
 	std::list<std::unique_ptr<cPhysicsObject>> list_of_objects;
 
-	int nMapWidth = 1024;
-	int nMapHeight = ScreenHeight();
+	const int nMapWidth = 1024;
+	const int nMapHeight = ScreenHeight();
 
-	olc::vf2d fCamera = {0.0f, 0.0f};
+	std::vector<unsigned char> map;
+
+	olc::vf2d fCameraPos = {0.0f, 0.0f};
 	float fCameraSpeed = 200.0f;
 
 public:
@@ -27,6 +31,14 @@ public:
 
 	bool OnUserCreate()
 	{
+		std::cout << "OnUserCreate" << std::endl;
+		map.resize(nMapWidth*nMapHeight);
+		std::cout << "\tmap.resize" << std::endl;
+		for(int i = 0; i < map.size(); i++ )
+		{
+			map[i] = 0;
+		}
+
 		for (int i = 0; i < 2; i++)
 		{
 			list_of_objects.push_back(
@@ -41,8 +53,6 @@ public:
 
 	bool OnUserUpdate(float fElapsedTime)
 	{
-		// Putting mouse position in a vector
-		olc::vf2d mouse_pos = {(float)GetMouseX(), (float)GetMouseY()};
 		// Game main loop
 		Clear(olc::BLUE);
 
@@ -53,27 +63,56 @@ public:
 			if (GetKey(olc::Key::ENTER).bReleased)
 			{
 				std::cout << "Enter has been released" << std::endl;
+				float *n = new float[nMapWidth];
+				float *out = new float[nMapWidth];
+
+				for (int i = 0; i < 10; i++)
+				{
+					n[i] = randf(1.0f, 0.0f);
+				}
+
+				n[0] = 0.8;
+
+				PerlinNoise1D(nMapWidth, n, 8, 2.0f, out);
+
+				for( int x = 0; x < nMapWidth; x++ )
+				{
+					for( int y = 0; y < nMapHeight; y++ )
+					{
+						if( y >= out[x] * nMapHeight )
+						{
+							map[ y * nMapWidth + x ] = 1;
+						} else {
+							map[ y * nMapWidth + x ] = 0;
+						}
+					}
+				}
+
+				delete[] n;
+				delete[] out;
 			}
 
-			// Handle camera position
-			if (mouse_pos.x < 5)
-				fCamera.x -= fCameraSpeed * fElapsedTime;
-			if (mouse_pos.x > ScreenWidth() - 5)
-				fCamera.x += fCameraSpeed * fElapsedTime;
-			if (mouse_pos.y < 5)
-				fCamera.y -= fCameraSpeed * fElapsedTime;
-			if (mouse_pos.y > ScreenHeight() - 5)
-				fCamera.y += fCameraSpeed * fElapsedTime;
-			// Clamp camera boundaries
-			if (fCamera.x < 0)
-				fCamera.x = 0;
-			if (fCamera.y < 0)
-				fCamera.y = 0;
-			if (fCamera.x >= nMapWidth - ScreenWidth())
-				fCamera.x = nMapWidth - ScreenWidth();
-			if (fCamera.y >= nMapHeight - ScreenHeight())
-				fCamera.y = nMapHeight - ScreenHeight();
+
 		}
+
+			// Handle camera position
+			if (GetMouseX() < 5)
+				fCameraPos.x -= fCameraSpeed * fElapsedTime;
+			if (GetMouseX() > ScreenWidth() - 5)
+				fCameraPos.x += fCameraSpeed * fElapsedTime;
+			if (GetMouseY() < 5)
+				fCameraPos.y -= fCameraSpeed * fElapsedTime;
+			if (GetMouseY() > ScreenHeight() - 5)
+				fCameraPos.y += fCameraSpeed * fElapsedTime;
+			// Clamp camera boundaries
+			if (fCameraPos.x < 0)
+				fCameraPos.x = 0;
+			if (fCameraPos.y < 0)
+				fCameraPos.y = 0;
+			if (fCameraPos.x >= nMapWidth - ScreenWidth())
+				fCameraPos.x = nMapWidth - ScreenWidth();
+			// if (fCameraPos.y > nMapHeight - ScreenHeight())
+			// 	fCameraPos.y = nMapHeight - ScreenHeight();
 
 		// Run through the list of object and update it
 		for (auto &p : list_of_objects)
@@ -83,27 +122,37 @@ public:
 
 		// Remove dead objects from list
 		list_of_objects.remove_if([](std::unique_ptr<cPhysicsObject> &p) { return p->bIsDead; });
+
+		// // Draw landscape
+		for( int x = 0; x < ScreenWidth(); x++ )
+		{
+			for( int y = 0; y < ScreenHeight(); y++ )
+			{
+				
+				// Offset screen coordinates into world coordinates
+				switch( map[( y + (int)fCameraPos.y ) * nMapWidth + (x + (int)fCameraPos.x)])
+				{
+					case 0:
+						Draw(x, y, olc::CYAN);
+						break;
+					case 1:
+						Draw(x, y, olc::GREEN);
+						break;
+				}
+			}
+		}
+
+
 		// Runthrough the list and displays the objects
 		for (auto &p : list_of_objects)
 		{
 			p->Display(this);
 		}
 
-		float seed = randf(1.0f, 10.0f);
-		float old_y = 0;
-		float old_x = 0;
-		for(int x = 0; x < ScreenWidth(); x+= ScreenWidth()/10 )
-		{
-			float y = sinf( seed * x ) + sinf( pi<float> * x );
-			DrawLine({old_x, ScreenHeight()-old_y*ScreenHeight()},{x, ScreenHeight()-y*ScreenHeight()}, olc::GREEN);
-			old_x = x;
-			old_y = y;
-		}
-
 		// Debug information
 		DrawString({0, 0}, "Game Objects: " + std::to_string(list_of_objects.size()));
-		DrawString({0, 8}, "Camera: " + std::to_string(fCamera.x) + "," + std::to_string(fCamera.y));
-		DrawString({0, 16}, "Mouse: " + std::to_string(mouse_pos.x) + "," + std::to_string(mouse_pos.y));
+		DrawString({0, 8}, "Camera: " + std::to_string((int)fCameraPos.x) + "," + std::to_string((int)fCameraPos.y));
+		DrawString({0, 16}, "Mouse: " + std::to_string(GetMouseX()) + "," + std::to_string(GetMouseY()));
 		return true;
 	}
 
