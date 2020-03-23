@@ -203,7 +203,7 @@ public:
 int main(int argc, char *argv[])
 {
 	Scorched_project game;
-	if (game.Construct(640, 480, 2, 2))
+	if (game.Construct(640, 480, 1, 1))
 	{
 		game.Start();
 	}
