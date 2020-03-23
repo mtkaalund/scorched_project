@@ -65,37 +65,7 @@ public:
 			if (GetKey(olc::Key::ENTER).bReleased)
 			{
 				std::cout << "Enter has been released" << std::endl;
-				float *fNoiseSeed = new float[nMapWidth];
-				float *fSurface = new float[nMapWidth];
-
-				for (int i = 0; i < nMapWidth; i++)
-				{
-					fNoiseSeed[i] = randf(1.0f, 0.0f);
-				}
-
-				fNoiseSeed[0] = randf(1.0f, 0.2f); //0.5;
-
-				std::cout << "\tfNoiseSeed[0] = " << fNoiseSeed[0] << std::endl;
-
-				PerlinNoise1D(nMapWidth, fNoiseSeed, 8, 2.0f, fSurface);
-
-				for (int x = 0; x < nMapWidth; x++)
-				{
-					for (int y = 0; y < nMapHeight; y++)
-					{
-						if (y >= fSurface[x] * nMapHeight)
-						{
-							map[y * nMapWidth + x] = 1;
-						}
-						else
-						{
-							map[y * nMapWidth + x] = 0;
-						}
-					}
-				}
-
-				delete[] fNoiseSeed;
-				delete[] fSurface;
+				GenerateMap();
 			}
 		}
 
@@ -164,6 +134,42 @@ public:
 		list_of_objects.clear();
 
 		return true;
+	}
+
+	// More or less taken from https://github.com/OneLoneCoder/videos/blob/master/worms/OneLoneCoder_Worms1.cpp
+	void GenerateMap()
+	{
+		float *fNoiseSeed = new float[nMapWidth];
+		float *fSurface = new float[nMapWidth];
+
+		for (int i = 0; i < nMapWidth; i++)
+		{
+			fNoiseSeed[i] = randf(1.0f, 0.0f);
+		}
+
+		fNoiseSeed[0] = randf(1.0f, 0.2f); //0.5;
+
+		std::cout << "\tfNoiseSeed[0] = " << fNoiseSeed[0] << std::endl;
+
+		PerlinNoise1D(nMapWidth, fNoiseSeed, 8, 2.0f, fSurface);
+
+		for (int x = 0; x < nMapWidth; x++)
+		{
+			for (int y = 0; y < nMapHeight; y++)
+			{
+				if (y >= fSurface[x] * nMapHeight)
+				{
+					map[y * nMapWidth + x] = 1;
+				}
+				else
+				{
+					map[y * nMapWidth + x] = 0;
+				}
+			}
+		}
+
+		delete[] fNoiseSeed;
+		delete[] fSurface;
 	}
 };
 
