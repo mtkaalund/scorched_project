@@ -14,8 +14,8 @@ class Scorched_project : public olc::PixelGameEngine
 private:
 	std::list<std::unique_ptr<cPhysicsObject>> list_of_objects;
 
-	const int nMapWidth = 1024;
-	const int nMapHeight = ScreenHeight();
+	int nMapWidth;
+	int nMapHeight;
 
 	std::vector<unsigned char> map;
 
@@ -31,6 +31,8 @@ public:
 
 	bool OnUserCreate()
 	{
+		nMapWidth = ScreenWidth() * 2;
+		nMapHeight = ScreenHeight();
 		std::cout << "OnUserCreate" << std::endl;
 		map.resize(nMapWidth*nMapHeight);
 		std::cout << "\tmap.resize" << std::endl;
@@ -54,7 +56,7 @@ public:
 	bool OnUserUpdate(float fElapsedTime)
 	{
 		// Game main loop
-		Clear(olc::BLUE);
+		//Clear(olc::BLUE);
 
 		// Before handling inputs, we'll need to check if window has focus
 		if (IsFocused())
@@ -63,23 +65,24 @@ public:
 			if (GetKey(olc::Key::ENTER).bReleased)
 			{
 				std::cout << "Enter has been released" << std::endl;
-				float *n = new float[nMapWidth];
-				float *out = new float[nMapWidth];
+				float *fNoiseSeed = new float[nMapWidth];
+				float *fSurface = new float[nMapWidth];
 
-				for (int i = 0; i < 10; i++)
+				for (int i = 0; i < nMapWidth; i++)
 				{
-					n[i] = randf(1.0f, 0.0f);
+					fNoiseSeed[i] = randf(1.0f, 0.0f);
 				}
 
-				n[0] = 0.8;
+				fNoiseSeed[0] = randf(1.0f,0.7f);//0.5;
+				std::cout << "\tfNoiseSeed[0] = " << fNoiseSeed[0] << std::endl;
 
-				PerlinNoise1D(nMapWidth, n, 8, 2.0f, out);
+				PerlinNoise1D(nMapWidth, fNoiseSeed, 8, 2.0f, fSurface);
 
 				for( int x = 0; x < nMapWidth; x++ )
 				{
 					for( int y = 0; y < nMapHeight; y++ )
 					{
-						if( y >= out[x] * nMapHeight )
+						if( y >= fSurface[x] * nMapHeight )
 						{
 							map[ y * nMapWidth + x ] = 1;
 						} else {
@@ -88,8 +91,8 @@ public:
 					}
 				}
 
-				delete[] n;
-				delete[] out;
+				delete[] fNoiseSeed;
+				delete[] fSurface;
 			}
 
 
@@ -111,8 +114,8 @@ public:
 				fCameraPos.y = 0;
 			if (fCameraPos.x >= nMapWidth - ScreenWidth())
 				fCameraPos.x = nMapWidth - ScreenWidth();
-			// if (fCameraPos.y > nMapHeight - ScreenHeight())
-			// 	fCameraPos.y = nMapHeight - ScreenHeight();
+			if (fCameraPos.y > nMapHeight - ScreenHeight())
+				fCameraPos.y = nMapHeight - ScreenHeight();
 
 		// Run through the list of object and update it
 		for (auto &p : list_of_objects)
