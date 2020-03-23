@@ -1,6 +1,7 @@
 #include <list>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <OneLoneCoder/olcPixelGameEngine.h>
 
@@ -10,13 +11,19 @@
 
 class Scorched_project : public olc::PixelGameEngine
 {
+private:
 	std::list<std::unique_ptr<cPhysicsObject>> list_of_objects;
 
-	int nMapWidth = 1024;
-	int nMapHeight = ScreenHeight();
+	int nMapWidth;
+	int nMapHeight;
 
-	olc::vf2d fCamera = {0.0f, 0.0f};
+	std::vector<unsigned char> map;
+
+	olc::vf2d fCameraPos = {0.0f, 0.0f};
 	float fCameraSpeed = 200.0f;
+
+	float fBiasMap = 1.1f;
+	int nOctaveMap = 4;
 
 public:
 	// Constructor
@@ -27,6 +34,16 @@ public:
 
 	bool OnUserCreate()
 	{
+		nMapWidth = ScreenWidth() * 2;
+		nMapHeight = ScreenHeight();
+
+		map.resize(nMapWidth * nMapHeight);
+
+		for (int i = 0; i < map.size(); i++)
+		{
+			map[i] = 0;
+		}
+
 		for (int i = 0; i < 2; i++)
 		{
 			list_of_objects.push_back(
@@ -41,39 +58,60 @@ public:
 
 	bool OnUserUpdate(float fElapsedTime)
 	{
-		// Putting mouse position in a vector
-		olc::vf2d mouse_pos = {(float)GetMouseX(), (float)GetMouseY()};
 		// Game main loop
-		Clear(olc::BLUE);
+		//Clear(olc::BLUE);
 
 		// Before handling inputs, we'll need to check if window has focus
 		if (IsFocused())
 		{
-
-			if (GetKey(olc::Key::ENTER).bReleased)
+			if (GetKey(olc::Key::M).bReleased)
 			{
-				std::cout << "Enter has been released" << std::endl;
+				GenerateMap();
 			}
 
-			// Handle camera position
-			if (mouse_pos.x < 5)
-				fCamera.x -= fCameraSpeed * fElapsedTime;
-			if (mouse_pos.x > ScreenWidth() - 5)
-				fCamera.x += fCameraSpeed * fElapsedTime;
-			if (mouse_pos.y < 5)
-				fCamera.y -= fCameraSpeed * fElapsedTime;
-			if (mouse_pos.y > ScreenHeight() - 5)
-				fCamera.y += fCameraSpeed * fElapsedTime;
-			// Clamp camera boundaries
-			if (fCamera.x < 0)
-				fCamera.x = 0;
-			if (fCamera.y < 0)
-				fCamera.y = 0;
-			if (fCamera.x >= nMapWidth - ScreenWidth())
-				fCamera.x = nMapWidth - ScreenWidth();
-			if (fCamera.y >= nMapHeight - ScreenHeight())
-				fCamera.y = nMapHeight - ScreenHeight();
+			if( GetKey(olc::Key::Q).bReleased)
+			{
+				fBiasMap += 0.1f;
+			}
+
+			if( GetKey(olc::Key::W).bReleased)
+			{
+				fBiasMap -= 0.1f;
+				if(fBiasMap < 0.1f )
+					fBiasMap = 0.1f;
+			}
+
+			if( GetKey(olc::Key::A).bReleased )
+			{
+				nOctaveMap += 1;
+			}
+
+			if( GetKey(olc::Key::S).bReleased )
+			{
+				nOctaveMap -= 1;
+				if( nOctaveMap < 1 )
+					nOctaveMap = 1;
+			}
 		}
+
+		// Handle camera position
+		if (GetMouseX() < 5)
+			fCameraPos.x -= fCameraSpeed * fElapsedTime;
+		if (GetMouseX() > ScreenWidth() - 5)
+			fCameraPos.x += fCameraSpeed * fElapsedTime;
+		if (GetMouseY() < 5)
+			fCameraPos.y -= fCameraSpeed * fElapsedTime;
+		if (GetMouseY() > ScreenHeight() - 5)
+			fCameraPos.y += fCameraSpeed * fElapsedTime;
+		// Clamp camera boundaries
+		if (fCameraPos.x < 0)
+			fCameraPos.x = 0;
+		if (fCameraPos.y < 0)
+			fCameraPos.y = 0;
+		if (fCameraPos.x >= nMapWidth - ScreenWidth())
+			fCameraPos.x = nMapWidth - ScreenWidth();
+		if (fCameraPos.y > nMapHeight - ScreenHeight())
+			fCameraPos.y = nMapHeight - ScreenHeight();
 
 		// Run through the list of object and update it
 		for (auto &p : list_of_objects)
@@ -83,17 +121,37 @@ public:
 
 		// Remove dead objects from list
 		list_of_objects.remove_if([](std::unique_ptr<cPhysicsObject> &p) { return p->bIsDead; });
+
+		// // Draw landscape
+		for (int x = 0; x < ScreenWidth(); x++)
+		{
+			for (int y = 0; y < ScreenHeight(); y++)
+			{
+				// Offset screen coordinates into world coordinates
+				switch (map[(y + (int)fCameraPos.y) * nMapWidth + (x + (int)fCameraPos.x)])
+				{
+				case 0:
+					Draw(x, y, olc::CYAN);
+					break;
+				case 1:
+					Draw(x, y, olc::VERY_DARK_GREEN);
+					break;
+				}
+			}
+		}
+
 		// Runthrough the list and displays the objects
 		for (auto &p : list_of_objects)
 		{
 			p->Display(this);
 		}
 
-
 		// Debug information
 		DrawString({0, 0}, "Game Objects: " + std::to_string(list_of_objects.size()));
-		DrawString({0, 8}, "Camera: " + std::to_string(fCamera.x) + "," + std::to_string(fCamera.y));
-		DrawString({0, 16}, "Mouse: " + std::to_string(mouse_pos.x) + "," + std::to_string(mouse_pos.y));
+		DrawString({0, 8}, "Camera: " + std::to_string((int)fCameraPos.x) + "," + std::to_string((int)fCameraPos.y));
+		DrawString({0, 16}, "Mouse: " + std::to_string(GetMouseX()) + "," + std::to_string(GetMouseY()));
+		DrawString({0,24}, "Map Bias: " + std::to_string(fBiasMap));
+		DrawString({0,32}, "Map Octave: " + std::to_string(nOctaveMap));
 		return true;
 	}
 
@@ -103,6 +161,42 @@ public:
 		list_of_objects.clear();
 
 		return true;
+	}
+
+	// More or less taken from https://github.com/OneLoneCoder/videos/blob/master/worms/OneLoneCoder_Worms1.cpp
+	void GenerateMap()
+	{
+		float *fNoiseSeed = new float[nMapWidth];
+		float *fSurface = new float[nMapWidth];
+
+		for (int i = 0; i < nMapWidth; i++)
+		{
+			fNoiseSeed[i] = randf(1.0f, 0.0f);
+		}
+
+		fNoiseSeed[0] = randf(0.6f, 0.3f); //0.5;
+
+		// fBiasMap should not be lower that 1.3
+		// nOctaveMap 4 and fBiasMap 1.1 is an interesting map
+		PerlinNoise1D(nMapWidth, fNoiseSeed, nOctaveMap, fBiasMap, fSurface);
+
+		for (int x = 0; x < nMapWidth; x++)
+		{
+			for (int y = 0; y < nMapHeight; y++)
+			{
+				if (y >= fSurface[x] * nMapHeight)
+				{
+					map[y * nMapWidth + x] = 1;
+				}
+				else
+				{
+					map[y * nMapWidth + x] = 0;
+				}
+			}
+		}
+
+		delete[] fNoiseSeed;
+		delete[] fSurface;
 	}
 };
 
