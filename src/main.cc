@@ -22,6 +22,9 @@ private:
 	olc::vf2d fCameraPos = {0.0f, 0.0f};
 	float fCameraSpeed = 200.0f;
 
+	float fBiasMap = 1.1f;
+	int nOctaveMap = 4;
+
 public:
 	// Constructor
 	Scorched_project()
@@ -61,11 +64,33 @@ public:
 		// Before handling inputs, we'll need to check if window has focus
 		if (IsFocused())
 		{
-
-			if (GetKey(olc::Key::ENTER).bReleased)
+			if (GetKey(olc::Key::M).bReleased)
 			{
-				std::cout << "Enter has been released" << std::endl;
 				GenerateMap();
+			}
+
+			if( GetKey(olc::Key::Q).bReleased)
+			{
+				fBiasMap += 0.1f;
+			}
+
+			if( GetKey(olc::Key::W).bReleased)
+			{
+				fBiasMap -= 0.1f;
+				if(fBiasMap < 0.1f )
+					fBiasMap = 0.1f;
+			}
+
+			if( GetKey(olc::Key::A).bReleased )
+			{
+				nOctaveMap += 1;
+			}
+
+			if( GetKey(olc::Key::S).bReleased )
+			{
+				nOctaveMap -= 1;
+				if( nOctaveMap < 1 )
+					nOctaveMap = 1;
 			}
 		}
 
@@ -125,6 +150,8 @@ public:
 		DrawString({0, 0}, "Game Objects: " + std::to_string(list_of_objects.size()));
 		DrawString({0, 8}, "Camera: " + std::to_string((int)fCameraPos.x) + "," + std::to_string((int)fCameraPos.y));
 		DrawString({0, 16}, "Mouse: " + std::to_string(GetMouseX()) + "," + std::to_string(GetMouseY()));
+		DrawString({0,24}, "Map Bias: " + std::to_string(fBiasMap));
+		DrawString({0,32}, "Map Octave: " + std::to_string(nOctaveMap));
 		return true;
 	}
 
@@ -147,11 +174,11 @@ public:
 			fNoiseSeed[i] = randf(1.0f, 0.0f);
 		}
 
-		fNoiseSeed[0] = randf(1.0f, 0.2f); //0.5;
+		fNoiseSeed[0] = randf(0.6f, 0.3f); //0.5;
 
-		std::cout << "\tfNoiseSeed[0] = " << fNoiseSeed[0] << std::endl;
-
-		PerlinNoise1D(nMapWidth, fNoiseSeed, 8, 2.0f, fSurface);
+		// fBiasMap should not be lower that 1.3
+		// nOctaveMap 4 and fBiasMap 1.1 is an interesting map
+		PerlinNoise1D(nMapWidth, fNoiseSeed, nOctaveMap, fBiasMap, fSurface);
 
 		for (int x = 0; x < nMapWidth; x++)
 		{
