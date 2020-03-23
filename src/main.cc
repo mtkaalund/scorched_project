@@ -33,10 +33,10 @@ public:
 	{
 		nMapWidth = ScreenWidth() * 2;
 		nMapHeight = ScreenHeight();
-		std::cout << "OnUserCreate" << std::endl;
-		map.resize(nMapWidth*nMapHeight);
-		std::cout << "\tmap.resize" << std::endl;
-		for(int i = 0; i < map.size(); i++ )
+
+		map.resize(nMapWidth * nMapHeight);
+
+		for (int i = 0; i < map.size(); i++)
 		{
 			map[i] = 0;
 		}
@@ -73,20 +73,23 @@ public:
 					fNoiseSeed[i] = randf(1.0f, 0.0f);
 				}
 
-				fNoiseSeed[0] = randf(1.0f,0.7f);//0.5;
+				fNoiseSeed[0] = randf(1.0f, 0.2f); //0.5;
+
 				std::cout << "\tfNoiseSeed[0] = " << fNoiseSeed[0] << std::endl;
 
 				PerlinNoise1D(nMapWidth, fNoiseSeed, 8, 2.0f, fSurface);
 
-				for( int x = 0; x < nMapWidth; x++ )
+				for (int x = 0; x < nMapWidth; x++)
 				{
-					for( int y = 0; y < nMapHeight; y++ )
+					for (int y = 0; y < nMapHeight; y++)
 					{
-						if( y >= fSurface[x] * nMapHeight )
+						if (y >= fSurface[x] * nMapHeight)
 						{
-							map[ y * nMapWidth + x ] = 1;
-						} else {
-							map[ y * nMapWidth + x ] = 0;
+							map[y * nMapWidth + x] = 1;
+						}
+						else
+						{
+							map[y * nMapWidth + x] = 0;
 						}
 					}
 				}
@@ -94,28 +97,26 @@ public:
 				delete[] fNoiseSeed;
 				delete[] fSurface;
 			}
-
-
 		}
 
-			// Handle camera position
-			if (GetMouseX() < 5)
-				fCameraPos.x -= fCameraSpeed * fElapsedTime;
-			if (GetMouseX() > ScreenWidth() - 5)
-				fCameraPos.x += fCameraSpeed * fElapsedTime;
-			if (GetMouseY() < 5)
-				fCameraPos.y -= fCameraSpeed * fElapsedTime;
-			if (GetMouseY() > ScreenHeight() - 5)
-				fCameraPos.y += fCameraSpeed * fElapsedTime;
-			// Clamp camera boundaries
-			if (fCameraPos.x < 0)
-				fCameraPos.x = 0;
-			if (fCameraPos.y < 0)
-				fCameraPos.y = 0;
-			if (fCameraPos.x >= nMapWidth - ScreenWidth())
-				fCameraPos.x = nMapWidth - ScreenWidth();
-			if (fCameraPos.y > nMapHeight - ScreenHeight())
-				fCameraPos.y = nMapHeight - ScreenHeight();
+		// Handle camera position
+		if (GetMouseX() < 5)
+			fCameraPos.x -= fCameraSpeed * fElapsedTime;
+		if (GetMouseX() > ScreenWidth() - 5)
+			fCameraPos.x += fCameraSpeed * fElapsedTime;
+		if (GetMouseY() < 5)
+			fCameraPos.y -= fCameraSpeed * fElapsedTime;
+		if (GetMouseY() > ScreenHeight() - 5)
+			fCameraPos.y += fCameraSpeed * fElapsedTime;
+		// Clamp camera boundaries
+		if (fCameraPos.x < 0)
+			fCameraPos.x = 0;
+		if (fCameraPos.y < 0)
+			fCameraPos.y = 0;
+		if (fCameraPos.x >= nMapWidth - ScreenWidth())
+			fCameraPos.x = nMapWidth - ScreenWidth();
+		if (fCameraPos.y > nMapHeight - ScreenHeight())
+			fCameraPos.y = nMapHeight - ScreenHeight();
 
 		// Run through the list of object and update it
 		for (auto &p : list_of_objects)
@@ -127,24 +128,22 @@ public:
 		list_of_objects.remove_if([](std::unique_ptr<cPhysicsObject> &p) { return p->bIsDead; });
 
 		// // Draw landscape
-		for( int x = 0; x < ScreenWidth(); x++ )
+		for (int x = 0; x < ScreenWidth(); x++)
 		{
-			for( int y = 0; y < ScreenHeight(); y++ )
+			for (int y = 0; y < ScreenHeight(); y++)
 			{
-				
 				// Offset screen coordinates into world coordinates
-				switch( map[( y + (int)fCameraPos.y ) * nMapWidth + (x + (int)fCameraPos.x)])
+				switch (map[(y + (int)fCameraPos.y) * nMapWidth + (x + (int)fCameraPos.x)])
 				{
-					case 0:
-						Draw(x, y, olc::CYAN);
-						break;
-					case 1:
-						Draw(x, y, olc::GREEN);
-						break;
+				case 0:
+					Draw(x, y, olc::CYAN);
+					break;
+				case 1:
+					Draw(x, y, olc::VERY_DARK_GREEN);
+					break;
 				}
 			}
 		}
-
 
 		// Runthrough the list and displays the objects
 		for (auto &p : list_of_objects)
