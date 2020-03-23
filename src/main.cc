@@ -147,11 +147,11 @@ public:
 		}
 
 		// Debug information
-		DrawString({0, 0}, "Game Objects: " + std::to_string(list_of_objects.size()));
-		DrawString({0, 8}, "Camera: " + std::to_string((int)fCameraPos.x) + "," + std::to_string((int)fCameraPos.y));
+		DrawString({0,  0}, "Game Objects: " + std::to_string(list_of_objects.size()));
+		DrawString({0,  8}, "Camera: " + std::to_string((int)fCameraPos.x) + "," + std::to_string((int)fCameraPos.y));
 		DrawString({0, 16}, "Mouse: " + std::to_string(GetMouseX()) + "," + std::to_string(GetMouseY()));
-		DrawString({0,24}, "Map Bias: " + std::to_string(fBiasMap));
-		DrawString({0,32}, "Map Octave: " + std::to_string(nOctaveMap));
+		DrawString({0, 24}, "Map Bias: " + std::to_string(fBiasMap));
+		DrawString({0, 32}, "Map Octave: " + std::to_string(nOctaveMap));
 		return true;
 	}
 
