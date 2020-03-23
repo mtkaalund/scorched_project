@@ -13,7 +13,7 @@ T const pi = std::acos(-T(1));
 template <typename T>
 T lerp( T v0, T v1, T t )
 {
-    return ( 1 - t ) * v0 + t * v1;
+    return ( 1 - t ) * v0 + ( t * v1 );
 }
 
 // Taken from Perlin Noise Video https://youtu.be/6-0UaeJBumA
@@ -36,7 +36,7 @@ void PerlinNoise1D( int nCount, float *fSeed, int nOctaves, float fBias, float *
             float fSample = lerp<float>(fSeed[nSample1], fSeed[nSample2], fBlend);
             fScaleAcc += fScale;
             fNoise += fSample * fScale;
-            fScale /= fBias;
+            fScale = fScale / fBias;
         }
 
         fOutput[x] = fNoise / fScaleAcc;
