@@ -5,37 +5,7 @@
 // For example: a "Tank IS a game object" so it inherits cGameObject. But a "tank HAS a shape. A tank IS NOT a shape" so cShape is injected as a class member
 // Virtual classes should always be inherited and never instansiated. Final classes should never be derived.
 
-virtual cGameObject {
-
-    constructor(vec2 location, cShape shape)
-    
-    cLocation : vec2
-    cAcceleration : vec2
-    cVelocity : vec2
-    fMaxSpeed : float
-    fAngle : float
-    fAngleVelocity : vec2
-    cAngleAcceleration : vec2
-
-    cShape : cShape
-}
-
-virtual cPhysics {
-
-    constructor(bool wind, bool gravity, float mass)
-
-    bAffectedByWind : bool // The reason we have these two is because tanks are not affected by wind, only gravity (when the ground below them blows up)
-    bAffectedByGravity : bool
-    fMass : float
-    
-    private void applyForce(vec2 force) // Scaled (multiplied) by the entity's mass, and added to cAcceleration
-    private vec2 getAcceleration(vec2 target)
-    private vec2 getDrag(float coefficient) // "coefficient" being the strength of whatever force you are simulating (wind, liquid etc)
-    
-    public applyGravity(float strength) // Gravity will be applied to the entity's velocity in the Y-axis only (and only down) 
-    public applyWind(float strength) // Similar to gravity, just applied to the X-axies only (left or right)
-}
-
+// Still not sure if this is the "right" way to do rendering...
 virtual cShape {
     cTexture : olc::Sprite
     cFillColor : vec3
@@ -56,39 +26,4 @@ final cRectangle : cShape {
 final cSquare : cShape {
     fSize : float
     override void Draw()
-}
-
-// CONCRETE GAME OBJECTS
-
-final cTank : cGameObject : cPhysics {
-
-    constructor(Shape shape, string name, vec2 location)
-        : cPhysics(true, false, 5) // 5 is just some placeholder for a tank's mass. Will have to be tweaked as we experiment with values
-        : cGameObject(location, cRectangle)
-
-    Weapons : List<cWeapon>
-    sName : string
-    fTurretAngle : float
-    fFiringPower : float
-    nHealth : int // 0 or below means dead. Below zero values allows up to calculate overkill
-
-    public cWeapon selectNextWeapon()
-    public cWeapon selectPreviousWeapon()
-    public void fireWeapon()
-    public void onHit()
-    public void onDeath() 
-}
-
-final cProjectile : cGameObject : cPhysics {
-    // A projectile seems distinct yet I can't come up with specific properties or methods for it... :(
-    public void onImpact() // Guess for most projectiles an explosion happens and debris (particles) are spawned. Perhaps this could be overriden by certain weapons, like a cluster bomb, to spawn additional projectiles?
-}
-
-virtual cWeapon {
-    nDamage : uint
-    fImpactEffectRadius : float
-    sName : string
-    
-    public void onBeingFired() // Spawns a projectile I guess? When it impacts it calls onImpact() on itself which by default calls onImpact() on the weapon maybe? And if overriden it does something special inside its own onImpact()?
-    public void onImpact()
 }
