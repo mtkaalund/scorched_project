@@ -43,6 +43,8 @@ void PerlinNoise1D( int nCount, float *fSeed, int nOctaves, float fBias, float *
     }
 }
 
+
+#if defined(_WIN64) || defined(__x86_64__)
 // C++17 float random generator
 float randf(float a, float b)
 {
@@ -63,5 +65,26 @@ int randi(int a, int b)
 
     return dis(gen);
 }
+#else
+float randf( float a, float b )
+{
+    std::random_device rd;
+    
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<float> dis(a, b);
+
+    return dis(gen);
+}
+
+int randi( int a, int b )
+{
+    std::random_device rd;
+    
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<int> dis(a, b);
+
+    return dis(gen);
+}
+#endif
 
 #endif
