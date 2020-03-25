@@ -1,4 +1,6 @@
-#pragma once
+#ifndef GAMEOBJECT_H_
+#define GAMEOBJECT_H_
+
 #include <OneLoneCoder/olcPixelGameEngine.h>
 
 // The base object for all objects in the game that have an actual, physical presence (location) and can be affected by physics
@@ -40,3 +42,5 @@ public:
 	// Probably to be combined with collision checking. Bouncing should be as easy as just reversing the velocity vector on 
 	// collision, scaled by some value, so that it loses power (acceleration) for each bounce
 };
+
+#endif

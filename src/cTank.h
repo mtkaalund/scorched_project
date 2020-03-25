@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TANK_H_
+#define TANK_H_
 
 #include <OneLoneCoder/olcPixelGameEngine.h>
 #include <cGameObject.h>
@@ -27,3 +28,5 @@ public:
     void onDeath(); // Remove from game? Explode? Keep in game but mark as dead/inactive?
     void addWeapon(cWeapon weapon); // Maybe you can get new weapons during a round? Supply drops? Something else?
 };
+
+#endif

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef WEAPON_H_
+#define WEAPON_H_
 
 #include <OneLoneCoder/olcPixelGameEngine.h>
 #include <cGameObject.h>
@@ -24,3 +25,5 @@ public:
     // - gravity and wind takes care of the rest
     void onFired();
 };
+
+#endif

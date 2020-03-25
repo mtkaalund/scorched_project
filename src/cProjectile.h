@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PROJECTILE_H_
+#define PROJECTILE_H_
 
 #include <OneLoneCoder/olcPixelGameEngine.h>
 #include <cGameObject.h>
@@ -20,3 +21,5 @@ public:
     // Applies damage to objects (tanks->onGettingHit() and terrain) within fDamageRadius. Spawns debris for added visual flair (we can add this later)
     void onDeath();
 };
+
+#endif
