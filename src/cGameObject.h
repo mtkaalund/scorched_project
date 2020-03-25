@@ -35,6 +35,7 @@ private:
 public:
 	void applyGravity(float strength); // Gravity will be applied to the entity's velocity in the Y-axis only (and only down) 
 	void applyWind(float strength); // Similar to gravity, just applied to the X-axies only (left or right)
+    void applyFluidResistance(float strength);
 	void checkCollision(cGameObject objects[]); // Might be done outside the objects instead of on them. Undecided how to handle yet
 	void resolveCollision(); // Might be done outside the objects instead of on them. Undecided how to handle yet
 	

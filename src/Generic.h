@@ -43,6 +43,15 @@ void PerlinNoise1D( int nCount, float *fSeed, int nOctaves, float fBias, float *
     }
 }
 
+float degreesToradians(float degrees) 
+{
+    return degrees * (pi<float> / 180);
+}
+
+float radiansToDegrees(float radians)
+{
+    return radians * (180 / pi<float>);
+}
 
 #if defined(_WIN64) || defined(__x86_64__)
 // C++17 float random generator
