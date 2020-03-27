@@ -76,7 +76,7 @@ public:
 			if( GetKey(olc::Key::C).bReleased)
 			{
 				bUsePerlin = (bUsePerlin ? false : true );
-				fBiasMap = (bUsePerlin ? 1.1f : 0.25f);
+				fBiasMap = (bUsePerlin ? 1.1f : 0.005f);
 			}
 
 			if (GetKey(olc::Key::Q).bReleased)
