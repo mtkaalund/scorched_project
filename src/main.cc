@@ -24,8 +24,16 @@ private:
 	float fCameraSpeed = 200.0f;
 
 	// For use with perlin noise
-	float fBiasMap = 1.1f;
+	float fBiasMap = 0.001f;
 	int nOctaveMap = 4;
+
+	enum NoiseType {
+		PERLINNOISE,
+		SIMPLEXNOISE,
+		VALUENOISE,
+		ENDNOISE
+	};
+	int CurrentNoise = PERLINNOISE;
 
 	bool bUsePerlin = true;
 
@@ -75,8 +83,13 @@ public:
 
 			if( GetKey(olc::Key::C).bReleased)
 			{
-				bUsePerlin = (bUsePerlin ? false : true );
-				fBiasMap = (bUsePerlin ? 1.1f : 0.005f);
+				CurrentNoise++;
+				if( CurrentNoise == ENDNOISE)
+				{
+					CurrentNoise = PERLINNOISE;
+				}
+				// bUsePerlin = (bUsePerlin ? false : true );
+				// fBiasMap = (bUsePerlin ? 1.1f : 0.005f);
 			}
 
 			if (GetKey(olc::Key::Q).bReleased)
@@ -91,17 +104,17 @@ public:
 					fBiasMap = 0.001f;
 			}
 
-			if (GetKey(olc::Key::A).bReleased)
-			{
-				nOctaveMap += 1;
-			}
+			// if (GetKey(olc::Key::A).bReleased)
+			// {
+			// 	nOctaveMap += 1;
+			// }
 
-			if (GetKey(olc::Key::S).bReleased)
-			{
-				nOctaveMap -= 1;
-				if (nOctaveMap < 1)
-					nOctaveMap = 1;
-			}
+			// if (GetKey(olc::Key::S).bReleased)
+			// {
+			// 	nOctaveMap -= 1;
+			// 	if (nOctaveMap < 1)
+			// 		nOctaveMap = 1;
+			// }
 		}
 
 		// Handle camera position
@@ -162,7 +175,21 @@ public:
 		DrawString({0, 16}, "Mouse: " + std::to_string(GetMouseX()) + "," + std::to_string(GetMouseY()));
 		DrawString({0, 24}, "Map Bias: " + std::to_string(fBiasMap));
 		DrawString({0, 32}, "Map Octave: " + std::to_string(nOctaveMap));
-		std::string str_map = "Map Engine: " + std::string( bUsePerlin == true ? "Perlin" : "Simplex");
+		std::string str_map = "Map Engine: ";
+		switch(CurrentNoise)
+		{
+			case PERLINNOISE:
+			str_map += "Perlin";
+			break;
+			case SIMPLEXNOISE:
+			str_map += "Simplex";
+			break;
+			case VALUENOISE:
+			str_map += "Value";
+			break;
+
+		}
+	
 		DrawString({0, 40}, str_map);
 		return true;
 	}
@@ -177,35 +204,39 @@ public:
 
 	void GenerateMap()
 	{
-		if(bUsePerlin)
-		{
-			//fBiasMap = 1.1f;
-			GenerateMapPerlin();
-		} else {
-			//fBiasMap = 0.25f;
-			GenerateMapWithSimplex();
-		}
+		// if(bUsePerlin)
+		// {
+		// 	//fBiasMap = 1.1f;
+		// 	GenerateMapPerlin();
+		// } else {
+		// 	//fBiasMap = 0.25f;
+		// 	GenerateMapWithSimplex();
+		// }
 
-	}
-
-	// More or less taken from https://github.com/OneLoneCoder/videos/blob/master/worms/OneLoneCoder_Worms1.cpp
-	void GenerateMapPerlin()
-	{
-		float *fNoiseSeed = new float[nMapWidth];
 		float *fSurface = new float[nMapWidth];
+		Noise *n = new Noise( nMapWidth );
 
-		for (int i = 0; i < nMapWidth; i++)
+		for( int i = 0; i < nMapWidth; i++ )
 		{
-			fNoiseSeed[i] = randf(0.0f, 1.0f);
+			switch(CurrentNoise)
+			{
+				case PERLINNOISE:
+					fSurface[i] = std::abs(n->Perlin1D(i, fBiasMap));
+					break;
+				case SIMPLEXNOISE:
+					fSurface[i] = std::abs(n->Simplex1D(i, fBiasMap)) * 1.10;
+					break;
+				case VALUENOISE:
+					fSurface[i] = std::abs(n->Value1D(i,fBiasMap));
+					break;
+				default:
+					fSurface[i] = std::abs(n->Perlin1D(i, fBiasMap));
+					break;
+			}
 		}
-
-		fNoiseSeed[0] = randf(0.3f, 0.6f); //0.5;
-
-		// fBiasMap should not be lower that 1.3
-		// nOctaveMap 4 and fBiasMap 1.1 is an interesting map
-		PerlinNoise1D(nMapWidth, fNoiseSeed, nOctaveMap, fBiasMap, fSurface);
+		
 		ClearMap();
-
+		
 		for (int x = 0; x < nMapWidth; x++)
 		{
 			for (int y = 0; y < nMapHeight; y++)
@@ -221,46 +252,83 @@ public:
 			}
 		}
 
-		delete[] fNoiseSeed;
 		delete[] fSurface;
-	}
-
-	void GenerateMapWithSimplex()
-	{
-		float *fSurface = new float[nMapWidth];
-
-		Noise *n = new Noise( nMapWidth );
-		for( int i = 0; i < nMapWidth; i++ )
-		{
-			fSurface[i] = std::abs(n->Simplex1D(i, fBiasMap));
-			float perlin = n->Perlin1D(i, fBiasMap);
-			float value = n->Value1D(i, fBiasMap);
-			std::cout << "Perlin[" << i << "] = " << perlin << " -> "  << perlin * nMapHeight << std::endl;
-			std::cout << "Simplex[" << i << "] = " << fSurface[i] << " -> " << fSurface[i] * nMapHeight * 0.25 << std::endl;
-			std::cout << "Value[" << i << "] = " << value << " -> " << value*nMapHeight << std::endl;
-		}
-		//SimplexNoise1D(nMapWidth, nSeed, fBiasMap, fSurface);
-		//ClearMap();
 		delete n;
-
-		for (int x = 0; x < nMapWidth; x++)
-		{
-			for (int y = 0; y < nMapHeight; y++)
-			{
-				if (y >= fSurface[x] * nMapHeight*0.25)
-				{
-					map[y * nMapWidth + x] = 1;
-				}
-				else
-				{
-					map[y * nMapWidth + x] = 0;
-				}
-			}
-		}
-
-		delete[] fSurface;
-		delete[] nSeed;
 	}
+
+	// // More or less taken from https://github.com/OneLoneCoder/videos/blob/master/worms/OneLoneCoder_Worms1.cpp
+	// void GenerateMapPerlin()
+	// {
+	// 	float *fNoiseSeed = new float[nMapWidth];
+	// 	float *fSurface = new float[nMapWidth];
+
+	// 	for (int i = 0; i < nMapWidth; i++)
+	// 	{
+	// 		fNoiseSeed[i] = randf(0.0f, 1.0f);
+	// 	}
+
+	// 	fNoiseSeed[0] = randf(0.3f, 0.6f); //0.5;
+
+	// 	// fBiasMap should not be lower that 1.3
+	// 	// nOctaveMap 4 and fBiasMap 1.1 is an interesting map
+	// 	PerlinNoise1D(nMapWidth, fNoiseSeed, nOctaveMap, fBiasMap, fSurface);
+	// 	ClearMap();
+
+	// 	for (int x = 0; x < nMapWidth; x++)
+	// 	{
+	// 		for (int y = 0; y < nMapHeight; y++)
+	// 		{
+	// 			if (y >= fSurface[x] * nMapHeight)
+	// 			{
+	// 				map[y * nMapWidth + x] = 1;
+	// 			}
+	// 			else
+	// 			{
+	// 				map[y * nMapWidth + x] = 0;
+	// 			}
+	// 		}
+	// 	}
+
+	// 	delete[] fNoiseSeed;
+	// 	delete[] fSurface;
+	// }
+
+	// void GenerateMapWithSimplex()
+	// {
+	// 	float *fSurface = new float[nMapWidth];
+
+	// 	Noise *n = new Noise( nMapWidth );
+	// 	for( int i = 0; i < nMapWidth; i++ )
+	// 	{
+	// 		fSurface[i] = std::abs(n->Simplex1D(i, fBiasMap));
+	// 		float perlin = n->Perlin1D(i, fBiasMap);
+	// 		float value = n->Value1D(i, fBiasMap);
+	// 		std::cout << "Perlin[" << i << "] = " << perlin << " -> "  << perlin * nMapHeight << std::endl;
+	// 		std::cout << "Simplex[" << i << "] = " << fSurface[i] << " -> " << fSurface[i] * nMapHeight * 0.25 << std::endl;
+	// 		std::cout << "Value[" << i << "] = " << value << " -> " << value*nMapHeight << std::endl;
+	// 	}
+	// 	//SimplexNoise1D(nMapWidth, nSeed, fBiasMap, fSurface);
+	// 	ClearMap();
+	// 	delete n;
+
+	// 	for (int x = 0; x < nMapWidth; x++)
+	// 	{
+	// 		for (int y = 0; y < nMapHeight; y++)
+	// 		{
+	// 			if (y >= fSurface[x] * nMapHeight*0.25)
+	// 			{
+	// 				map[y * nMapWidth + x] = 1;
+	// 			}
+	// 			else
+	// 			{
+	// 				map[y * nMapWidth + x] = 0;
+	// 			}
+	// 		}
+	// 	}
+
+	// 	delete[] fSurface;
+		
+	// }
 
 	void ClearMap()
 	{
