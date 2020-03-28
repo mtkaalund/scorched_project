@@ -25,7 +25,7 @@ private:
 
 	// For use with perlin noise
 	float fBiasMap = 0.001f;
-	int nOctaveMap = 4;
+	// int nOctaveMap = 4;
 
 	enum NoiseType {
 		PERLINNOISE,
@@ -34,8 +34,6 @@ private:
 		ENDNOISE
 	};
 	int CurrentNoise = PERLINNOISE;
-
-	bool bUsePerlin = true;
 
 public:
 	// Constructor
@@ -88,8 +86,6 @@ public:
 				{
 					CurrentNoise = PERLINNOISE;
 				}
-				// bUsePerlin = (bUsePerlin ? false : true );
-				// fBiasMap = (bUsePerlin ? 1.1f : 0.005f);
 			}
 
 			if (GetKey(olc::Key::Q).bReleased)
@@ -103,18 +99,6 @@ public:
 				if (fBiasMap < 0.001f)
 					fBiasMap = 0.001f;
 			}
-
-			// if (GetKey(olc::Key::A).bReleased)
-			// {
-			// 	nOctaveMap += 1;
-			// }
-
-			// if (GetKey(olc::Key::S).bReleased)
-			// {
-			// 	nOctaveMap -= 1;
-			// 	if (nOctaveMap < 1)
-			// 		nOctaveMap = 1;
-			// }
 		}
 
 		// Handle camera position
@@ -174,7 +158,7 @@ public:
 		DrawString({0, 8}, "Camera: " + std::to_string((int)fCameraPos.x) + "," + std::to_string((int)fCameraPos.y));
 		DrawString({0, 16}, "Mouse: " + std::to_string(GetMouseX()) + "," + std::to_string(GetMouseY()));
 		DrawString({0, 24}, "Map Bias: " + std::to_string(fBiasMap));
-		DrawString({0, 32}, "Map Octave: " + std::to_string(nOctaveMap));
+		// DrawString({0, 32}, "Map Octave: " + std::to_string(nOctaveMap));
 		std::string str_map = "Map Engine: ";
 		switch(CurrentNoise)
 		{
@@ -204,15 +188,6 @@ public:
 
 	void GenerateMap()
 	{
-		// if(bUsePerlin)
-		// {
-		// 	//fBiasMap = 1.1f;
-		// 	GenerateMapPerlin();
-		// } else {
-		// 	//fBiasMap = 0.25f;
-		// 	GenerateMapWithSimplex();
-		// }
-
 		float *fSurface = new float[nMapWidth];
 		Noise *n = new Noise( nMapWidth );
 
@@ -291,43 +266,6 @@ public:
 
 	// 	delete[] fNoiseSeed;
 	// 	delete[] fSurface;
-	// }
-
-	// void GenerateMapWithSimplex()
-	// {
-	// 	float *fSurface = new float[nMapWidth];
-
-	// 	Noise *n = new Noise( nMapWidth );
-	// 	for( int i = 0; i < nMapWidth; i++ )
-	// 	{
-	// 		fSurface[i] = std::abs(n->Simplex1D(i, fBiasMap));
-	// 		float perlin = n->Perlin1D(i, fBiasMap);
-	// 		float value = n->Value1D(i, fBiasMap);
-	// 		std::cout << "Perlin[" << i << "] = " << perlin << " -> "  << perlin * nMapHeight << std::endl;
-	// 		std::cout << "Simplex[" << i << "] = " << fSurface[i] << " -> " << fSurface[i] * nMapHeight * 0.25 << std::endl;
-	// 		std::cout << "Value[" << i << "] = " << value << " -> " << value*nMapHeight << std::endl;
-	// 	}
-	// 	//SimplexNoise1D(nMapWidth, nSeed, fBiasMap, fSurface);
-	// 	ClearMap();
-	// 	delete n;
-
-	// 	for (int x = 0; x < nMapWidth; x++)
-	// 	{
-	// 		for (int y = 0; y < nMapHeight; y++)
-	// 		{
-	// 			if (y >= fSurface[x] * nMapHeight*0.25)
-	// 			{
-	// 				map[y * nMapWidth + x] = 1;
-	// 			}
-	// 			else
-	// 			{
-	// 				map[y * nMapWidth + x] = 0;
-	// 			}
-	// 		}
-	// 	}
-
-	// 	delete[] fSurface;
-		
 	// }
 
 	void ClearMap()
