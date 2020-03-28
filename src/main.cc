@@ -81,14 +81,14 @@ public:
 
 			if (GetKey(olc::Key::Q).bReleased)
 			{
-				fBiasMap += 0.1f;
+				fBiasMap += 0.001f;
 			}
 
 			if (GetKey(olc::Key::W).bReleased)
 			{
-				fBiasMap -= 0.1f;
-				if (fBiasMap < 0.1f)
-					fBiasMap = 0.1f;
+				fBiasMap -= 0.001f;
+				if (fBiasMap < 0.001f)
+					fBiasMap = 0.001f;
 			}
 
 			if (GetKey(olc::Key::A).bReleased)
@@ -228,28 +228,26 @@ public:
 	void GenerateMapWithSimplex()
 	{
 		float *fSurface = new float[nMapWidth];
-		// Simplex Seed Noise
-		int *nSeed = new int[512];
 
-		for (int i = 0; i < 512; i++)
-		{
-			nSeed[i] = randi(0,512);
-		}
-
-		Noise n;
+		Noise *n = new Noise( nMapWidth );
 		for( int i = 0; i < nMapWidth; i++ )
 		{
-			fSurface[i] = n.Value1D(i, fBiasMap);
-		    std::cout << fSurface[i] * nMapHeight << std::endl;
+			fSurface[i] = std::abs(n->Simplex1D(i, fBiasMap));
+			float perlin = n->Perlin1D(i, fBiasMap);
+			float value = n->Value1D(i, fBiasMap);
+			std::cout << "Perlin[" << i << "] = " << perlin << " -> "  << perlin * nMapHeight << std::endl;
+			std::cout << "Simplex[" << i << "] = " << fSurface[i] << " -> " << fSurface[i] * nMapHeight * 0.25 << std::endl;
+			std::cout << "Value[" << i << "] = " << value << " -> " << value*nMapHeight << std::endl;
 		}
 		//SimplexNoise1D(nMapWidth, nSeed, fBiasMap, fSurface);
 		//ClearMap();
+		delete n;
 
 		for (int x = 0; x < nMapWidth; x++)
 		{
 			for (int y = 0; y < nMapHeight; y++)
 			{
-				if (y >= fSurface[x] * nMapHeight)
+				if (y >= fSurface[x] * nMapHeight*0.25)
 				{
 					map[y * nMapWidth + x] = 1;
 				}
