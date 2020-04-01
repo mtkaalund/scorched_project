@@ -1,0 +1,3 @@
+[submodule "OneLoneCoder"]
+	path = OneLoneCoder
+	url = https://github.com/mtkaalund/OneLoneCoderLib
