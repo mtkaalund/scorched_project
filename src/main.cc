@@ -23,6 +23,9 @@ private:
 	olc::vf2d fCameraPos = {0.0f, 0.0f};
 	float fCameraSpeed = 200.0f;
 
+	// Angle for pointing
+	float fAngle = 0.0f;
+
 	// For use with perlin noise
 	float fBiasMap = 0.001f;
 	// int nOctaveMap = 4;
@@ -54,7 +57,7 @@ public:
 			map[i] = 0;
 		}
 
-		for (int i = 0; i < 2; i++)
+		for (int i = 0; i < 1; i++)
 		{
 			list_of_objects.push_back(
 				std::unique_ptr<cParticle>(
@@ -99,16 +102,26 @@ public:
 				if (fBiasMap < 0.001f)
 					fBiasMap = 0.001f;
 			}
+
+			if( GetKey(olc::Key::UP).bHeld )
+			{
+				fAngle -= 0.5f;
+			}
+
+			if( GetKey(olc::Key::DOWN).bHeld )
+			{
+				fAngle += 0.5f;
+			}
 		}
 
 		// Handle camera position
-		if (GetMouseX() < 5)
+		if (GetMouseX() < 15)
 			fCameraPos.x -= fCameraSpeed * fElapsedTime;
-		if (GetMouseX() > ScreenWidth() - 5)
+		if (GetMouseX() > ScreenWidth() - 15)
 			fCameraPos.x += fCameraSpeed * fElapsedTime;
-		if (GetMouseY() < 5)
+		if (GetMouseY() < 15)
 			fCameraPos.y -= fCameraSpeed * fElapsedTime;
-		if (GetMouseY() > ScreenHeight() - 5)
+		if (GetMouseY() > ScreenHeight() - 15)
 			fCameraPos.y += fCameraSpeed * fElapsedTime;
 		// Clamp camera boundaries
 		if (fCameraPos.x < 0)
@@ -123,6 +136,7 @@ public:
 		// Run through the list of object and update it
 		for (auto &p : list_of_objects)
 		{
+			p->fAngle = fAngle;
 			p->Update(fElapsedTime);
 		}
 
@@ -158,7 +172,7 @@ public:
 		DrawString({0, 8}, "Camera: " + std::to_string((int)fCameraPos.x) + "," + std::to_string((int)fCameraPos.y));
 		DrawString({0, 16}, "Mouse: " + std::to_string(GetMouseX()) + "," + std::to_string(GetMouseY()));
 		DrawString({0, 24}, "Map Bias: " + std::to_string(fBiasMap));
-		// DrawString({0, 32}, "Map Octave: " + std::to_string(nOctaveMap));
+		DrawString({0, 32}, "Angle: " + std::to_string(fAngle));
 		std::string str_map = "Map Engine: ";
 		switch(CurrentNoise)
 		{
@@ -216,7 +230,7 @@ public:
 		{
 			for (int y = 0; y < nMapHeight; y++)
 			{
-				if (y >= fSurface[x] * nMapHeight)
+				if (y >= (1.0f - fSurface[x]) * nMapHeight)
 				{
 					map[y * nMapWidth + x] = 1;
 				}
