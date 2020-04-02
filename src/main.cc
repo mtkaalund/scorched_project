@@ -150,7 +150,7 @@ public:
 		// Runthrough the list and displays the objects
 		for (auto &p : list_of_objects)
 		{
-			p->Display(this);
+			p->Display(this, fCameraPos);
 		}
 
 		// Debug information
