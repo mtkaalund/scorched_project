@@ -23,8 +23,15 @@ public:
 
     void Display( olc::PixelGameEngine * engine, olc::vf2d fOffset ) override
     {       
-        engine->DrawLine(location - fOffset, location - fOffset + olc::vf2d({0, 10}), olc::GREEN);
-        engine->DrawCircle(location - fOffset, 10, olc::RED);
+        olc::vf2d fLineEnd = {
+            2 * fRadius * cosf( fAngle * pi<float>/360.0f) ,
+            2 * fRadius * sinf( fAngle * pi<float>/360.0f)
+        };
+
+        fLineEnd += location;
+
+        engine->DrawLine(location - fOffset, fLineEnd , olc::DARK_RED);
+        engine->DrawCircle(location - fOffset, (int)fRadius, olc::RED);
     }
 };
 
