@@ -18,7 +18,7 @@ public:
     }
 
     virtual void Update( float fElapsedTime ) = 0;
-    virtual void Display( olc::PixelGameEngine * engine ) = 0;
+    virtual void Display( olc::PixelGameEngine * engine, olc::vf2d fOffset ) = 0;
 };
 
 #endif
