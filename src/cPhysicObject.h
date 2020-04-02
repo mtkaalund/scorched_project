@@ -10,6 +10,8 @@ public:
     olc::vf2d velocity;
     olc::vf2d acceleration;
 
+    float fAngle = 0.0f;
+
     bool bIsDead;
 
     cPhysicsObject( olc::vf2d loc ) : location( loc ) 
