@@ -30,13 +30,14 @@ private:
 	float fBiasMap = 0.001f;
 	// int nOctaveMap = 4;
 
-	enum NoiseType {
+	enum NoiseType
+	{
 		PERLINNOISE,
 		SIMPLEXNOISE,
 		VALUENOISE,
 		ENDNOISE
 	};
-	int CurrentNoise = PERLINNOISE;
+	int CurrentNoise = VALUENOISE;
 
 public:
 	// Constructor
@@ -57,14 +58,16 @@ public:
 			map[i] = 0;
 		}
 
-		for (int i = 0; i < 1; i++)
+		for (int i = 0; i < 10; i++)
 		{
 			list_of_objects.push_back(
 				std::unique_ptr<cParticle>(
 					new cParticle(
-						{randf(0.0f, (float)ScreenWidth()),
-						 randf(0.0f, 100.0f)})));
+						{randf(0.0f, (float)nMapWidth),
+						 0.0f})));
 		}
+
+		GenerateMap();
 
 		return true;
 	}
@@ -82,10 +85,10 @@ public:
 				GenerateMap();
 			}
 
-			if( GetKey(olc::Key::C).bReleased)
+			if (GetKey(olc::Key::C).bReleased)
 			{
 				CurrentNoise++;
-				if( CurrentNoise == ENDNOISE)
+				if (CurrentNoise == ENDNOISE)
 				{
 					CurrentNoise = PERLINNOISE;
 				}
@@ -103,12 +106,12 @@ public:
 					fBiasMap = 0.001f;
 			}
 
-			if( GetKey(olc::Key::UP).bHeld )
+			if (GetKey(olc::Key::UP).bHeld)
 			{
 				fAngle -= 0.5f;
 			}
 
-			if( GetKey(olc::Key::DOWN).bHeld )
+			if (GetKey(olc::Key::DOWN).bHeld)
 			{
 				fAngle += 0.5f;
 			}
@@ -133,11 +136,70 @@ public:
 		if (fCameraPos.y > nMapHeight - ScreenHeight())
 			fCameraPos.y = nMapHeight - ScreenHeight();
 
-		// Run through the list of object and update it
-		for (auto &p : list_of_objects)
+		for (int i = 0; i < 20; i++)
 		{
-			p->fAngle = fAngle;
-			p->Update(fElapsedTime);
+			// Run through the list of object and update it
+			for (auto &p : list_of_objects)
+			{
+				p->fAngle = fAngle;
+				p->acceleration.y += 2.0f;
+				p->velocity += p->acceleration * fElapsedTime;
+				//p->Update(fElapsedTime);
+				olc::vf2d fPotential = p->location + p->velocity * fElapsedTime;
+				// Reset acceleration
+				p->acceleration.y = 0.0f;
+
+				// This is collision check with map, more or less taken from javidx9' worms
+				float fCheckAngle = atan2f(p->velocity.y, p->velocity.x);
+				olc::vf2d fReponse = {0.0f, 0.0f};
+				bool bCollision = false;
+				for (float r = fCheckAngle - pi<float> / 2.0f; r < fCheckAngle + pi<float> / 2.0f; r += pi<float> / 4.0f)
+				{
+					// Iterate through semicircle of objects radius rotated to direction of travel
+					olc::vf2d fTestPos = {
+						p->fRadius * cosf(r),
+						p->fRadius * sinf(r)};
+					fTestPos += fPotential;
+
+					if (fTestPos.x >= nMapWidth)
+						fTestPos.x = nMapWidth - 1;
+					if (fTestPos.y >= nMapHeight)
+						fTestPos.x = nMapHeight - 1;
+					if (fTestPos.x < 0)
+						fTestPos.x = 0;
+					if (fTestPos.y < 0)
+						fTestPos.y = 0;
+
+					if (map[(int)fTestPos.y * nMapWidth + (int)fTestPos.x] > 0)
+					{
+						//Accumulate collision points to give an escape response vector
+						// Effectively, normal to the areas of contact
+						fReponse += fPotential - fTestPos;
+						bCollision = true;
+					}
+
+					float fMagVelocity = std::sqrt(p->velocity.x * p->velocity.x + p->velocity.y * p->velocity.y);
+					float fMagResponse = std::sqrt(fReponse.x * fReponse.x + fReponse.y * fReponse.y);
+
+					if (p->location.x < 0 || p->location.x > nMapWidth || p->location.y < 0 || p->location.y > nMapHeight)
+						p->bIsDead = true;
+
+					if (bCollision)
+					{
+						p->bStable = true;
+						// Calculate reflection vector of object velocity vector,
+						// using response vector as normal
+						float dot = p->velocity.x * (fReponse.x / fMagResponse) + p->velocity.y * (fReponse.y / fMagResponse);
+						// Use friction coefficient to dampen response ( aproximating energy loss )
+						p->velocity.x = p->fFriction * (-2.0f * dot * (fReponse.x / fMagResponse) + p->velocity.x);
+						p->velocity.y = p->fFriction * (-2.0f * dot * (fReponse.y / fMagResponse) + p->velocity.y);
+					}
+					else
+					{
+						p->location = fPotential;
+					}
+				}
+			}
 		}
 
 		// Remove dead objects from list
@@ -174,20 +236,19 @@ public:
 		DrawString({0, 24}, "Map Bias: " + std::to_string(fBiasMap));
 		DrawString({0, 32}, "Angle: " + std::to_string(fAngle));
 		std::string str_map = "Map Engine: ";
-		switch(CurrentNoise)
+		switch (CurrentNoise)
 		{
-			case PERLINNOISE:
+		case PERLINNOISE:
 			str_map += "Perlin";
 			break;
-			case SIMPLEXNOISE:
+		case SIMPLEXNOISE:
 			str_map += "Simplex";
 			break;
-			case VALUENOISE:
+		case VALUENOISE:
 			str_map += "Value";
 			break;
-
 		}
-	
+
 		DrawString({0, 40}, str_map);
 		return true;
 	}
@@ -203,29 +264,29 @@ public:
 	void GenerateMap()
 	{
 		float *fSurface = new float[nMapWidth];
-		Noise *n = new Noise( nMapWidth );
+		Noise *n = new Noise(nMapWidth);
 
-		for( int i = 0; i < nMapWidth; i++ )
+		for (int i = 0; i < nMapWidth; i++)
 		{
-			switch(CurrentNoise)
+			switch (CurrentNoise)
 			{
-				case PERLINNOISE:
-					fSurface[i] = std::abs(n->Perlin1D(i, fBiasMap));
-					break;
-				case SIMPLEXNOISE:
-					fSurface[i] = std::abs(n->Simplex1D(i, fBiasMap)) * 1.10;
-					break;
-				case VALUENOISE:
-					fSurface[i] = std::abs(n->Value1D(i,fBiasMap));
-					break;
-				default:
-					fSurface[i] = std::abs(n->Perlin1D(i, fBiasMap));
-					break;
+			case PERLINNOISE:
+				fSurface[i] = std::abs(n->Perlin1D(i, fBiasMap));
+				break;
+			case SIMPLEXNOISE:
+				fSurface[i] = std::abs(n->Simplex1D(i, fBiasMap)) * 1.10;
+				break;
+			case VALUENOISE:
+				fSurface[i] = std::abs(n->Value1D(i, fBiasMap));
+				break;
+			default:
+				fSurface[i] = std::abs(n->Perlin1D(i, fBiasMap));
+				break;
 			}
 		}
-		
+
 		ClearMap();
-		
+
 		for (int x = 0; x < nMapWidth; x++)
 		{
 			for (int y = 0; y < nMapHeight; y++)
@@ -284,7 +345,7 @@ public:
 
 	void ClearMap()
 	{
-		for(int i = 0; i < map.size(); i++ )
+		for (int i = 0; i < map.size(); i++)
 		{
 			map[i] = 0;
 		}

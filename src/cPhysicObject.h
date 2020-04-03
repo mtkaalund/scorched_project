@@ -11,8 +11,11 @@ public:
     olc::vf2d acceleration;
 
     float fAngle = 0.0f;
+    float fRadius;
+    float fFriction = 0.2f;
 
     bool bIsDead;
+    bool bStable;
 
     cPhysicsObject( olc::vf2d loc ) : location( loc ) 
     {

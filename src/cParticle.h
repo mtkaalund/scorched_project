@@ -9,10 +9,11 @@
 class cParticle : public cPhysicsObject
 {
 public:
-    float fRadius;
+    
 
     cParticle( olc::vf2d loc ) : cPhysicsObject(loc) {
         fRadius = randf(4.0f, 10.0f);
+        fAngle = randf(0.0f, 360.0f);
     }
 
     void Update( float fElapsedTime ) override
@@ -30,8 +31,8 @@ public:
 
         fLineEnd += location;
 
-        engine->DrawLine(location - fOffset, fLineEnd , olc::DARK_RED);
-        engine->DrawCircle(location - fOffset, (int)fRadius, olc::RED);
+        engine->DrawLine(location - fOffset, fLineEnd - fOffset , olc::DARK_RED);
+        engine->FillCircle(location - fOffset, (int)fRadius, olc::RED);
     }
 };
 
